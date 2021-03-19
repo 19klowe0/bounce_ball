@@ -12,9 +12,11 @@ namespace bounce_Ball
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Model ball, plane;
+        Model ball, plane, dish;
         Matrix world, view, proj;
         ball b;
+
+        MeshCollider worldmesh;//fix
 
         List<ball> ballList;
 
@@ -24,8 +26,9 @@ namespace bounce_Ball
         //        ballList.Add(b = new bounce_ball.ball());
         //    }
 
-    Random rand;
+        Random rand;
         float fov;
+        float camRotY;
 
         public Game1()
         {
@@ -39,18 +42,22 @@ namespace bounce_Ball
             // TODO: Add your initialization logic here
 
             fov = 60;
+            camRotY = 0;
+
+
 
   
             base.Initialize();
         }
 
-        protected override void LoadContent()
+        protected override void LoadContent()//load in mesh
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
             ball = Content.Load<Model>("sphere");
             plane = Content.Load<Model>("plane");
+            dish = Content.Load<Model>("dish");
 
             rand = new Random();
             b = new ball(new Vector3(30, 25, 30),
@@ -82,12 +89,22 @@ namespace bounce_Ball
                 fov += .5f;
             }
 
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                camRotY -= .01f;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                camRotY += .01f;
+            }
+
             // TODO: Add your update logic here
 
             foreach (ball b in ballList)
             {
                 b.Update(gameTime);
-                b.checkCollision(new Plane(Vector3.Up, 0f));
+                //b.checkCollision(new Plane(Vector3.Up, 0f));
+                worldmesh//need rest of code
 
                 // Check collision between balls 
                
@@ -106,7 +123,8 @@ namespace bounce_Ball
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
-            view = Matrix.CreateLookAt(new Vector3(50, 50, 50),
+            view = Matrix.CreateLookAt(//new Vector3(50, 50, 50),
+                                        Vector3.Transform(new Vector3(50,50,50), Matrix.CreateRotationY(camRotY)),
                                         Vector3.Zero,
                                         Vector3.Up);
             proj = Matrix.CreatePerspectiveFieldOfView(
@@ -114,8 +132,22 @@ namespace bounce_Ball
                             _graphics.PreferredBackBufferWidth/_graphics.PreferredBackBufferHeight,
                             1.0f,
                             1000f);
-            world = Matrix.CreateScale(100);
-            plane.Draw(world, view, proj);
+            //fpr plane
+            //world = Matrix.CreateScale(100);
+            //plane.Draw(world, view, proj);
+
+            world = Matrix.CreateScale(4);
+            foreach(ModelMesh mesh in dish.Meshes)
+            {
+                foreach(BasicEffect effect in mesh.Effects)
+                {
+                    effect.World = world;
+                    effect.View = view;
+                    effect.Projection = proj;
+                    effect.EnableDefaultLighting();
+                }
+                mesh.Draw();
+            }
 
             //world = Matrix.CreateTranslation(b.Pos);
 
